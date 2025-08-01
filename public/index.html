@@ -4,91 +4,484 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat Widget Builder</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 40px; background: #f5f5f5; }
-        .container { max-width: 800px; margin: 0 auto; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        h1 { color: #333; text-align: center; margin-bottom: 30px; }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
-        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; }
-        button { background: #4F46E5; color: white; padding: 12px 24px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
-        button:hover { background: #3730A3; }
-        .code-box { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 5px; padding: 15px; font-family: monospace; font-size: 12px; white-space: pre-wrap; margin-top: 10px; }
-        .preview { text-align: center; margin: 20px 0; }
-        .demo-link { display: inline-block; background: #10B981; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin: 5px; }
-        .demo-link:hover { background: #059669; }
-    </style>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body>
-    <div class="container">
-        <h1>🚀 Chat Widget Builder</h1>
-        
-        <div class="preview">
-            <a href="/test.html" class="demo-link" target="_blank">📱 Test Widget</a>
-            <a href="/admin.html" class="demo-link" target="_blank">👨‍💼 Admin Dashboard</a>
-        </div>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState, useEffect } = React;
 
-        <div class="form-group">
-            <label for="color">Primary Color:</label>
-            <input type="color" id="color" value="#4F46E5" onchange="updateCode()">
-        </div>
-
-        <div class="form-group">
-            <label for="position">Position:</label>
-            <select id="position" onchange="updateCode()">
-                <option value="bottom-right">Bottom Right</option>
-                <option value="bottom-left">Bottom Left</option>
-                <option value="top-right">Top Right</option>
-                <option value="top-left">Top Left</option>
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label for="title">Widget Title:</label>
-            <input type="text" id="title" value="Chat with us" onchange="updateCode()">
-        </div>
-
-        <div class="form-group">
-            <label for="greeting">Greeting Message:</label>
-            <textarea id="greeting" rows="2" onchange="updateCode()">Hello! How can we help you today?</textarea>
-        </div>
-
-        <button onclick="copyCode()">📋 Copy Embed Code</button>
-
-        <div id="embed-code" class="code-box"></div>
-    </div>
-
-    <script>
-        function updateCode() {
-            const color = document.getElementById('color').value;
-            const position = document.getElementById('position').value;
-            const title = document.getElementById('title').value;
-            const greeting = document.getElementById('greeting').value;
+        const ChatWidgetBuilder = () => {
+          const [config, setConfig] = useState({
+            // Appearance
+            primaryColor: '#4F46E5',
+            backgroundColor: '#FFFFFF',
+            textColor: '#1F2937',
+            borderRadius: '16',
+            shadow: 'large',
             
-            const code = `<!-- Paste this code before closing </body> tag -->
-<script src="${window.location.origin}/widget.js"></script>
+            // Position
+            position: 'bottom-right',
+            offset: { x: 20, y: 20 },
+            
+            // Branding
+            title: 'Chat with us',
+            subtitle: 'We reply instantly',
+            avatar: '👋',
+            companyName: 'Your Company',
+            
+            // Behavior
+            greeting: 'Hello! How can we help you today?',
+            placeholder: 'Type your message...',
+            showOnlineStatus: true,
+            autoOpen: false,
+            
+            // Customization
+            theme: 'modern',
+            size: 'medium'
+          });
+
+          const [activeTab, setActiveTab] = useState('design');
+          const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+
+          const updateConfig = (key, value) => {
+            setConfig(prev => ({ ...prev, [key]: value }));
+          };
+
+          const getWidgetStyles = () => {
+            const shadows = {
+              none: 'shadow-none',
+              small: 'shadow-md',
+              medium: 'shadow-lg',
+              large: 'shadow-2xl'
+            };
+
+            const sizes = {
+              small: 'w-12 h-12',
+              medium: 'w-16 h-16',
+              large: 'w-20 h-20'
+            };
+
+            return {
+              widget: `${sizes[config.size]} rounded-${config.borderRadius === '16' ? 'full' : 'lg'} ${shadows[config.shadow]}`,
+              chat: `w-80 h-96 rounded-lg ${shadows[config.shadow]}`
+            };
+          };
+
+          const generateEmbedCode = () => {
+            const embedCode = `<!-- Chat Widget -->
+<div id="chat-widget-container"></div>
 <script>
-ChatWidget.init({
-    primaryColor: '${color}',
-    position: '${position}',
-    title: '${title}',
-    greeting: '${greeting}',
-    apiEndpoint: '${window.location.origin}'
-});
+  (function() {
+    const config = ${JSON.stringify(config, null, 2)};
+    
+    const script = document.createElement('script');
+    script.src = '${window.location.origin}/widget.js';
+    script.onload = function() {
+      ChatWidget.init(config);
+    };
+    document.head.appendChild(script);
+  })();
 </script>`;
-            
-            document.getElementById('embed-code').textContent = code;
-        }
+            return embedCode;
+          };
 
-        function copyCode() {
-            const code = document.getElementById('embed-code').textContent;
-            navigator.clipboard.writeText(code).then(() => {
-                alert('Code copied! Paste it into any website.');
-            });
-        }
+          const copyToClipboard = async (text) => {
+            try {
+              await navigator.clipboard.writeText(text);
+              alert('Code copied to clipboard!');
+            } catch (err) {
+              console.error('Failed to copy:', err);
+            }
+          };
 
-        // Initialize
-        updateCode();
+          const ChatPreview = () => (
+            <div className="relative">
+              {/* Widget Button */}
+              <div 
+                className={`fixed ${config.position === 'bottom-right' ? 'bottom-4 right-4' : 
+                  config.position === 'bottom-left' ? 'bottom-4 left-4' : 
+                  config.position === 'top-right' ? 'top-4 right-4' : 'top-4 left-4'
+                } ${getWidgetStyles().widget} cursor-pointer transition-all duration-200 hover:scale-105`}
+                style={{ 
+                  backgroundColor: config.primaryColor,
+                  color: config.backgroundColor 
+                }}
+                onClick={() => setIsPreviewOpen(!isPreviewOpen)}
+              >
+                <div className="flex items-center justify-center w-full h-full">
+                  <svg className={`${config.size === 'small' ? 'w-5 h-5' : config.size === 'medium' ? 'w-6 h-6' : 'w-7 h-7'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                </div>
+              </div>
+
+              {/* Chat Window */}
+              {isPreviewOpen && (
+                <div 
+                  className={`fixed ${config.position === 'bottom-right' ? 'bottom-20 right-4' : 
+                    config.position === 'bottom-left' ? 'bottom-20 left-4' : 
+                    config.position === 'top-right' ? 'top-20 right-4' : 'top-20 left-4'
+                  } ${getWidgetStyles().chat} flex flex-col overflow-hidden transition-all duration-300 transform`}
+                  style={{ 
+                    backgroundColor: config.backgroundColor,
+                    color: config.textColor,
+                    border: `1px solid ${config.primaryColor}20`
+                  }}
+                >
+                  {/* Header */}
+                  <div 
+                    className="p-4 flex items-center space-x-3"
+                    style={{ backgroundColor: config.primaryColor, color: config.backgroundColor }}
+                  >
+                    <div className="text-2xl">{config.avatar}</div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-sm">{config.title}</h3>
+                      <p className="text-xs opacity-90">{config.subtitle}</p>
+                    </div>
+                    {config.showOnlineStatus && (
+                      <div className="flex items-center space-x-1">
+                        <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                        <span className="text-xs">Online</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Messages */}
+                  <div className="flex-1 p-4 space-y-3">
+                    <div className="flex items-start space-x-2">
+                      <div className="text-lg">{config.avatar}</div>
+                      <div 
+                        className="px-3 py-2 rounded-lg max-w-xs"
+                        style={{ backgroundColor: `${config.primaryColor}20` }}
+                      >
+                        <p className="text-sm">{config.greeting}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Input */}
+                  <div className="p-4 border-t border-gray-100">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="text"
+                        placeholder={config.placeholder}
+                        className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 text-sm"
+                        style={{ focusRingColor: config.primaryColor }}
+                      />
+                      <button
+                        className="px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+                        style={{ 
+                          backgroundColor: config.primaryColor, 
+                          color: config.backgroundColor 
+                        }}
+                      >
+                        Send
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+
+          return (
+            <div className="min-h-screen bg-gray-50 flex">
+              {/* Sidebar */}
+              <div className="w-80 bg-white shadow-lg flex flex-col">
+                <div className="p-6 border-b">
+                  <h1 className="text-2xl font-bold text-gray-900">Widget Builder</h1>
+                  <p className="text-gray-600 mt-1">Design your perfect chat widget</p>
+                </div>
+
+                {/* Tabs */}
+                <div className="flex border-b">
+                  {[
+                    { id: 'design', label: 'Design', icon: '🎨' },
+                    { id: 'settings', label: 'Settings', icon: '⚙️' },
+                    { id: 'code', label: 'Code', icon: '💻' }
+                  ].map(tab => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`flex-1 flex items-center justify-center space-x-2 px-4 py-3 font-medium transition-colors ${
+                        activeTab === tab.id
+                          ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      <span>{tab.icon}</span>
+                      <span>{tab.label}</span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Tab Content */}
+                <div className="flex-1 overflow-y-auto p-6">
+                  {activeTab === 'design' && (
+                    <div className="space-y-6">
+                      {/* Colors */}
+                      <div>
+                        <h3 className="text-lg font-semibold mb-3">Colors</h3>
+                        <div className="space-y-3">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Primary Color</label>
+                            <input
+                              type="color"
+                              value={config.primaryColor}
+                              onChange={(e) => updateConfig('primaryColor', e.target.value)}
+                              className="w-full h-10 rounded-lg border-2 border-gray-200 cursor-pointer"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Background</label>
+                            <input
+                              type="color"
+                              value={config.backgroundColor}
+                              onChange={(e) => updateConfig('backgroundColor', e.target.value)}
+                              className="w-full h-10 rounded-lg border-2 border-gray-200 cursor-pointer"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Style */}
+                      <div>
+                        <h3 className="text-lg font-semibold mb-3">Style</h3>
+                        <div className="space-y-3">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Border Radius</label>
+                            <select
+                              value={config.borderRadius}
+                              onChange={(e) => updateConfig('borderRadius', e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                              <option value="4">Small (4px)</option>
+                              <option value="8">Medium (8px)</option>
+                              <option value="16">Large (16px)</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Shadow</label>
+                            <select
+                              value={config.shadow}
+                              onChange={(e) => updateConfig('shadow', e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                              <option value="none">None</option>
+                              <option value="small">Small</option>
+                              <option value="medium">Medium</option>
+                              <option value="large">Large</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Size</label>
+                            <select
+                              value={config.size}
+                              onChange={(e) => updateConfig('size', e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                              <option value="small">Small</option>
+                              <option value="medium">Medium</option>
+                              <option value="large">Large</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Position */}
+                      <div>
+                        <h3 className="text-lg font-semibold mb-3">Position</h3>
+                        <div className="grid grid-cols-2 gap-2">
+                          {[
+                            { value: 'bottom-right', label: 'Bottom Right' },
+                            { value: 'bottom-left', label: 'Bottom Left' },
+                            { value: 'top-right', label: 'Top Right' },
+                            { value: 'top-left', label: 'Top Left' }
+                          ].map(pos => (
+                            <button
+                              key={pos.value}
+                              onClick={() => updateConfig('position', pos.value)}
+                              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                config.position === pos.value
+                                  ? 'bg-blue-600 text-white'
+                                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                              }`}
+                            >
+                              {pos.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {activeTab === 'settings' && (
+                    <div className="space-y-6">
+                      {/* Branding */}
+                      <div>
+                        <h3 className="text-lg font-semibold mb-3">Branding</h3>
+                        <div className="space-y-3">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                            <input
+                              type="text"
+                              value={config.title}
+                              onChange={(e) => updateConfig('title', e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Subtitle</label>
+                            <input
+                              type="text"
+                              value={config.subtitle}
+                              onChange={(e) => updateConfig('subtitle', e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Avatar (Emoji)</label>
+                            <input
+                              type="text"
+                              value={config.avatar}
+                              onChange={(e) => updateConfig('avatar', e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Messages */}
+                      <div>
+                        <h3 className="text-lg font-semibold mb-3">Messages</h3>
+                        <div className="space-y-3">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Greeting Message</label>
+                            <textarea
+                              value={config.greeting}
+                              onChange={(e) => updateConfig('greeting', e.target.value)}
+                              rows={3}
+                              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Input Placeholder</label>
+                            <input
+                              type="text"
+                              value={config.placeholder}
+                              onChange={(e) => updateConfig('placeholder', e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Behavior */}
+                      <div>
+                        <h3 className="text-lg font-semibold mb-3">Behavior</h3>
+                        <div className="space-y-3">
+                          <label className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              checked={config.showOnlineStatus}
+                              onChange={(e) => updateConfig('showOnlineStatus', e.target.checked)}
+                              className="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            />
+                            <span className="text-sm font-medium text-gray-700">Show Online Status</span>
+                          </label>
+                          <label className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              checked={config.autoOpen}
+                              onChange={(e) => updateConfig('autoOpen', e.target.checked)}
+                              className="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            />
+                            <span className="text-sm font-medium text-gray-700">Auto-open on Page Load</span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {activeTab === 'code' && (
+                    <div className="space-y-6">
+                      <div>
+                        <h3 className="text-lg font-semibold mb-3">Embed Code</h3>
+                        <p className="text-sm text-gray-600 mb-3">
+                          Copy and paste this code into your website's HTML, just before the closing &lt;/body&gt; tag.
+                        </p>
+                        <div className="relative">
+                          <pre className="bg-gray-900 text-green-400 p-4 rounded-lg text-xs overflow-x-auto">
+                            <code>{generateEmbedCode()}</code>
+                          </pre>
+                          <button
+                            onClick={() => copyToClipboard(generateEmbedCode())}
+                            className="absolute top-2 right-2 px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition-colors"
+                          >
+                            Copy
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Preview Area */}
+              <div className="flex-1 bg-gradient-to-br from-blue-50 to-purple-50 relative overflow-hidden">
+                <div className="absolute inset-0 p-8">
+                  <div className="bg-white rounded-lg shadow-sm h-full flex flex-col">
+                    <div className="p-6 border-b">
+                      <div className="flex items-center justify-between">
+                        <h2 className="text-xl font-semibold text-gray-900">Live Preview</h2>
+                        <button
+                          onClick={() => setIsPreviewOpen(!isPreviewOpen)}
+                          className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                          <span>{isPreviewOpen ? 'Close Chat' : 'Open Chat'}</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex-1 relative">
+                      {/* Simulated Website Content */}
+                      <div className="p-8 space-y-6">
+                        <div className="max-w-2xl">
+                          <h1 className="text-3xl font-bold text-gray-900 mb-4">Welcome to Our Website</h1>
+                          <p className="text-gray-600 mb-4">
+                            This is a preview of how your chat widget will appear on your website. 
+                            You can customize every aspect of the widget using the controls on the left.
+                          </p>
+                          <div className="bg-gray-100 p-4 rounded-lg">
+                            <h3 className="font-semibold text-gray-900 mb-2">Sample Content</h3>
+                            <p className="text-gray-600">
+                              Your chat widget will float over content like this, providing easy access 
+                              for your visitors to reach out with questions or support requests.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Chat Widget */}
+                      <ChatPreview />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        };
+
+        ReactDOM.render(<ChatWidgetBuilder />, document.getElementById('root'));
     </script>
 </body>
 </html>
