@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Admin Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; }
+        h1 { color: #333; }
+        .conversations { display: grid; gap: 20px; margin-top: 20px; }
+        .conversation { border: 1px solid #ddd; padding: 15px; border-radius: 8px; background: white; }
+        .message { margin: 10px 0; padding: 10px; border-radius: 8px; }
+        .user { background: #e3f2fd; text-align: right; }
+        .agent { background: #f1f8e9; }
+        .reply-box { margin-top: 15px; }
+        .reply-box input { width: 70%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        .reply-box button { padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Chat Admin Dashboard</h1>
+        <p>Manage customer conversations in real-time</p>
+        
+        <div id="conversations" class="conversations">
+            <div class="conversation">
+                <h3>Demo Conversation</h3>
+                <div class="message user">Hello! I need help with pricing.</div>
+                <div class="message agent">Hi! I'd be happy to help with pricing information.</div>
+                
+                <div class="reply-box">
+                    <input type="text" placeholder="Type your reply..." />
+                    <button onclick="sendReply()">Send Reply</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function sendReply() {
+            alert('Reply sent! (This is a demo - connect to your backend for real functionality)');
+        }
+        
+        // In a real app, this would load actual conversations from your API
+        console.log('Admin dashboard loaded');
+    </script>
+</body>
+</html>
